@@ -1,0 +1,75 @@
+<!-- 
+  I would like to note that I referred to The Complete 2021 Web Development Bootcamp
+on udemy to learn about table, thead, tbody, tr, and td html tags as well as css
+stylings to center elements at the center of a screen. To be more specific, I looked
+at Intermediate HTML and Intermediate CSS sections of the course. I already completed
+front-end and React sections of the course because I needed them for my own personal
+proojects and for this course as well. You can find the course by following this link:
+https://www.udemy.com/share/1013gGBkcbeF1VQX4=/
+  In order to display strikethrough for wrong answers, I referenced the following link:
+https://www.w3schools.com/cssref/pr_text_text-decoration.asp
+-->
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>Mukhtar Kussaiynbekov 20180861</title>
+		<link
+			href="https://use.fontawesome.com/releases/v5.0.8/css/all.css"
+			rel="stylesheet"
+		/>
+		<link rel="preconnect" href="https://fonts.gstatic.com" />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+			rel="stylesheet"
+		/>
+		<link href="capital_game.css" rel="stylesheet" />
+		<link
+			href="http://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css"
+			rel="stylesheet"
+		/>
+		<link
+			href="jquery/css/ui-lightness/jquery-ui-1.10.0.custom.css"
+			rel="stylesheet"
+		/>
+	</head>
+	<body>
+		<div class="container">
+			<h1>World Capital Quiz Game</h1>
+			<h3>Do you know the capital of this country?</h3>
+
+			<table class="table">
+				<thead>
+					<tr class="table-header">
+						<td class="cell">COUNTRY</td>
+						<td class="cell">CAPITAL CITY</td>
+						<td class="cell">ANSWER</td>
+					</tr>
+				</thead>
+				<tbody class="table-body">
+					<tr class="row">
+						<td class="cell" id="pr2__country">Indonesia</td>
+						<td class="cell"><input id="pr2__capital" /></td>
+						<td class="cell"><button id="pr2__button">Check Answer</button></td>
+					</tr>
+					<!-- <tr class="row correct">
+						<td class="cell">Germany</td>
+						<td class="cell">Berlin</td>
+						<td class="cell"><i class="fas fa-check"></i></td>
+					</tr>
+					<tr class="row wrong">
+						<td class="cell">Republic of Korea</td>
+						<td class="cell strikethrough">Daejeon</td>
+						<td class="cell">Seoul</td>
+					</tr> -->
+				</tbody>
+			</table>
+		</div>
+
+		<script src="jquery/js/jquery-1.9.0.min.js"></script>
+		<script src="jquery/js/jquery-ui-1.10.0.custom.min.js"></script>
+		<script src="./country_capital_pairs.js"></script>
+		<script src="./capital_game.js"></script>
+	</body>
+</html>

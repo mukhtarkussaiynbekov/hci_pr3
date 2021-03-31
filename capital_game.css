@@ -1,0 +1,44 @@
+body {
+	background-color: #eee;
+}
+
+.container {
+	font-family: 'Roboto', sans-serif;
+	margin: auto;
+	width: 500px;
+}
+
+/* Table Styling */
+.table {
+	border-collapse: collapse;
+}
+
+.table-header {
+	font-weight: bold;
+	text-align: center;
+	border-bottom: 2px solid black;
+}
+
+.table-body {
+	text-align: left;
+}
+
+.row {
+	border-bottom: 1px solid #808080;
+}
+
+.cell {
+	padding: 4px;
+}
+
+.correct {
+	color: green;
+}
+
+.wrong {
+	color: red;
+}
+
+.strikethrough {
+	text-decoration: line-through;
+}
