@@ -4,7 +4,7 @@
 $(document).ready(function () {
 	var country_capital_pairs = pairs;
 
-	var previousSelections = [];
+	var userAnswers = [];
 
 	const emptyList = () => {
 		var emptyArrayRow = document.createElement('tr');
@@ -18,8 +18,24 @@ $(document).ready(function () {
 		emptyArrayRow.appendChild(emptyCell);
 		$('.table-body').append(emptyArrayRow);
 	};
+
+	const submitAnswer = () => {
+		var country = $('#pr2__country').text();
+		var capital = $('#pr2__capital').val();
+		var newRow = document.createElement('tr');
+		newRow.className = 'row';
+		var countryCell = document.createElement('td');
+		var countryText = document.createTextNode(country);
+		var capitalText = document.createTextNode(capital);
+		var capitalCell = document.createElement('td');
+		capitalCell.appendChild(capitalText);
+		countryCell.appendChild(countryText);
+		newRow.appendChild(countryCell);
+		newRow.appendChild(capitalCell);
+		$('.table-body').append(newRow);
+	};
+
 	emptyList();
-	// previousSelections.forEach()
 
 	const getRandomPair = () => {
 		const random = Math.floor(Math.random() * country_capital_pairs.length);
@@ -33,6 +49,10 @@ $(document).ready(function () {
 	setNewEntry();
 	$('#pr2__button').click(function () {
 		if ($('#pr2__capital').val() !== '') {
+			if (userAnswers.length === 0) {
+				$('#emptyList').remove();
+			}
+			submitAnswer();
 			setNewEntry();
 		}
 	});
