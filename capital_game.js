@@ -32,26 +32,58 @@ $(document).ready(function () {
 		// https://www.benchresources.net/remove-leading-and-trailing-whitespace-from-javascript-string/
 		// https://stackoverflow.com/a/1026087
 		var trimmedString = string.trim();
-		return trimmedString.charAt(0).toLowerCase() + trimmedString.slice(1);
+		return trimmedString.toLowerCase();
 	};
 
 	const submitAnswer = () => {
 		var country = $('#pr2__country').text();
 		var correctCapital = getCorrectCapital(country);
 		console.log(correctCapital);
-		var capital = formattedString($('#pr2__capital').val());
-		console.log(capital);
+		var inputCapital = $('#pr2__capital').val();
+		var formattedInputCapital = formattedString(inputCapital);
+		console.log(inputCapital);
+		var isCorrect = formattedInputCapital === correctCapital.toLowerCase();
 
+		userAnswers.push({
+			country,
+			capital: correctCapital,
+			input: inputCapital,
+			isCorrect
+		});
+
+		// row create
 		var newRow = document.createElement('tr');
-		newRow.className = 'row';
+		newRow.className = `row ${isCorrect ? 'correct' : 'wrong'}`;
+
+		// country cell with its text
 		var countryCell = document.createElement('td');
+		countryCell.className = 'cell';
 		var countryText = document.createTextNode(country);
-		var capitalText = document.createTextNode(capital);
-		var capitalCell = document.createElement('td');
-		capitalCell.appendChild(capitalText);
 		countryCell.appendChild(countryText);
+
+		// capital cell with its text
+		var capitalCell = document.createElement('td');
+		capitalCell.className = `cell ${isCorrect ? '' : 'strikethrough'}`;
+		var capitalText = document.createTextNode(
+			isCorrect ? correctCapital : inputCapital
+		);
+		capitalCell.appendChild(capitalText);
+
+		// answer cell with its text or icon
+		var answerCell = document.createElement('td');
+		if (isCorrect) {
+			var icon = document.createElement('i');
+			icon.className = 'fas fa-circle';
+			answerCell.appendChild(icon);
+		} else {
+			var correctAnswerText = document.createTextNode(correctCapital);
+			answerCell.appendChild(correctAnswerText);
+		}
+
+		// finally display to a user
 		newRow.appendChild(countryCell);
 		newRow.appendChild(capitalCell);
+		newRow.appendChild(answerCell);
 		$('.table-body').append(newRow);
 	};
 
