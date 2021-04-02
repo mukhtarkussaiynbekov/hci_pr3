@@ -19,9 +19,29 @@ $(document).ready(function () {
 		$('.table-body').append(emptyArrayRow);
 	};
 
+	const getCorrectCapital = country => {
+		for (var pair of country_capital_pairs) {
+			if (pair.country === country) {
+				return pair.capital;
+			}
+		}
+	};
+
+	const formattedString = string => {
+		// referenced following links:
+		// https://www.benchresources.net/remove-leading-and-trailing-whitespace-from-javascript-string/
+		// https://stackoverflow.com/a/1026087
+		var trimmedString = string.trim();
+		return trimmedString.charAt(0).toLowerCase() + trimmedString.slice(1);
+	};
+
 	const submitAnswer = () => {
 		var country = $('#pr2__country').text();
-		var capital = $('#pr2__capital').val();
+		var correctCapital = getCorrectCapital(country);
+		console.log(correctCapital);
+		var capital = formattedString($('#pr2__capital').val());
+		console.log(capital);
+
 		var newRow = document.createElement('tr');
 		newRow.className = 'row';
 		var countryCell = document.createElement('td');
