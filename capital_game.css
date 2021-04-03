@@ -42,3 +42,9 @@ body {
 .strikethrough {
 	text-decoration: line-through;
 }
+
+/* referenced https://stackoverflow.com/a/9182921 */
+.ui-autocomplete {
+	max-height: 250px;
+	overflow-x: hidden; /* add padding to account for vertical scrollbar */
+}

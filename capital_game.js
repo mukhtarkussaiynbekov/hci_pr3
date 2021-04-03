@@ -3,6 +3,35 @@
 
 $(document).ready(function () {
 	var country_capital_pairs = pairs;
+	var capitals = [];
+	country_capital_pairs.forEach(pair => capitals.push(pair.capital));
+
+	$('#pr2__capital').autocomplete({
+		source: capitals,
+		minLength: 2,
+		select: (event, ui) => {
+			if (userAnswers.length === 0) {
+				$('#emptyList').remove();
+			}
+			submitAnswer(ui.item.value);
+			ui.item.value = '';
+			setNewEntry();
+		}
+	});
+	// .keyup(function (e) {
+	// 	if (e.which === 13) {
+	// 		// referenced https://stackoverflow.com/a/49816411
+	// 		if ($('#pr2__capital').hasClass('ui-autocomplete'))
+	// 			$('#pr2__capital').autocomplete('close');
+	// 		$('#pr2__button').trigger('click');
+	// 	}
+	// });
+
+	$.widget('custom.autocomplete', {
+		_resizeMenu: function () {
+			this.menu.element.outerHeight(250);
+		}
+	});
 
 	var userAnswers = [];
 
@@ -35,11 +64,10 @@ $(document).ready(function () {
 		return trimmedString.toLowerCase();
 	};
 
-	const submitAnswer = () => {
+	const submitAnswer = inputCapital => {
 		var country = $('#pr2__country').text();
 		var correctCapital = getCorrectCapital(country);
 		console.log(correctCapital);
-		var inputCapital = $('#pr2__capital').val();
 		var formattedInputCapital = formattedString(inputCapital);
 		console.log(inputCapital);
 		var isCorrect = formattedInputCapital === correctCapital.toLowerCase();
@@ -104,7 +132,7 @@ $(document).ready(function () {
 			if (userAnswers.length === 0) {
 				$('#emptyList').remove();
 			}
-			submitAnswer();
+			submitAnswer($('#pr2__capital').val());
 			setNewEntry();
 		}
 	});
