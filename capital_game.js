@@ -6,6 +6,12 @@ $(document).ready(function () {
 	var capitals = [];
 	country_capital_pairs.forEach(pair => capitals.push(pair.capital));
 
+	// referenced https://www.tutorialrepublic.com/faq/how-to-get-the-value-of-selected-option-in-a-select-box-using-jquery.php#:~:text=Answer%3A%20Use%20the%20jQuery%20%3Aselected,select%20box%20or%20dropdown%20list.
+	$('#selection').change(() => {
+		var selectedOption = $('#selection').children('option:selected').val();
+		console.log(selectedOption);
+	});
+
 	$('#pr2__capital').autocomplete({
 		source: capitals,
 		minLength: 2,
