@@ -26,6 +26,40 @@ $(document).ready(function () {
 	};
 	displayEmptyList();
 
+	const getCorrectCapital = country => {
+		for (var pair of country_capital_pairs) {
+			if (pair.country === country) {
+				return pair.capital;
+			}
+		}
+	};
+
+	const formattedString = string => {
+		// referenced following links:
+		// https://www.benchresources.net/remove-leading-and-trailing-whitespace-from-javascript-string/
+		// https://stackoverflow.com/a/1026087
+		var trimmedString = string.trim();
+		return trimmedString.toLowerCase();
+	};
+
+	const getRandomPair = () => {
+		const random = Math.floor(Math.random() * country_capital_pairs.length);
+		return country_capital_pairs[random];
+	};
+	const setNewEntry = () => {
+		var pair = getRandomPair();
+		$('#pr2__country').text(pair.country);
+		$('#pr2__capital').val('').focus();
+	};
+
+	setNewEntry();
+
+	const clearTable = () => {
+		userAnswers.forEach((entry, idx) => {
+			$(`#${idx}`).remove();
+		});
+	};
+
 	const displayAnswer = (
 		id,
 		country,
@@ -62,18 +96,23 @@ $(document).ready(function () {
 			var correctAnswerText = document.createTextNode(correctCapital);
 			answerCell.appendChild(correctAnswerText);
 		}
+		var removeButton = document.createElement('button');
+		removeButton.className = 'removeButton';
+		removeButton.setAttribute('type', 'button');
+		removeButton.innerHTML = 'Remove';
+		removeButton.onclick = () => {
+			clearTable();
+			// referenced https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/splice
+			userAnswers.splice(id, 1);
+			$('#selection').change();
+		};
+		answerCell.appendChild(removeButton);
 
 		// finally display to a user
 		newRow.appendChild(countryCell);
 		newRow.appendChild(capitalCell);
 		newRow.appendChild(answerCell);
 		$('.table-body').append(newRow);
-	};
-
-	const clearTable = () => {
-		userAnswers.forEach((entry, idx) => {
-			$(`#${idx}`).remove();
-		});
 	};
 
 	// referenced https://www.tutorialrepublic.com/faq/how-to-get-the-value-of-selected-option-in-a-select-box-using-jquery.php#:~:text=Answer%3A%20Use%20the%20jQuery%20%3Aselected,select%20box%20or%20dropdown%20list.
@@ -100,49 +139,6 @@ $(document).ready(function () {
 		}
 	});
 
-	$('#pr2__capital').autocomplete({
-		source: capitals,
-		minLength: 2,
-		select: (event, ui) => {
-			if (userAnswers.length === 0) {
-				$(`#${EMPTY_LIST}`).remove();
-			}
-			submitAnswer(ui.item.value);
-			ui.item.value = '';
-			setNewEntry();
-		}
-	});
-	// .keyup(function (e) {
-	// 	if (e.which === 13) {
-	// 		// referenced https://stackoverflow.com/a/49816411
-	// 		if ($('#pr2__capital').hasClass('ui-autocomplete'))
-	// 			$('#pr2__capital').autocomplete('close');
-	// 		$('#pr2__button').trigger('click');
-	// 	}
-	// });
-
-	$.widget('custom.autocomplete', {
-		_resizeMenu: function () {
-			this.menu.element.outerHeight(250);
-		}
-	});
-
-	const getCorrectCapital = country => {
-		for (var pair of country_capital_pairs) {
-			if (pair.country === country) {
-				return pair.capital;
-			}
-		}
-	};
-
-	const formattedString = string => {
-		// referenced following links:
-		// https://www.benchresources.net/remove-leading-and-trailing-whitespace-from-javascript-string/
-		// https://stackoverflow.com/a/1026087
-		var trimmedString = string.trim();
-		return trimmedString.toLowerCase();
-	};
-
 	const submitAnswer = inputCapital => {
 		var country = $('#pr2__country').text();
 		var correctCapital = getCorrectCapital(country);
@@ -164,24 +160,42 @@ $(document).ready(function () {
 		}
 	};
 
-	const getRandomPair = () => {
-		const random = Math.floor(Math.random() * country_capital_pairs.length);
-		return country_capital_pairs[random];
-	};
-	const setNewEntry = () => {
-		var pair = getRandomPair();
-		$('#pr2__country').text(pair.country);
-		$('#pr2__capital').val('').focus();
-	};
-	setNewEntry();
-	$('#pr2__button').click(function () {
+	$('#pr2__capital')
+		.autocomplete({
+			source: capitals,
+			minLength: 2,
+			select: (event, ui) => {
+				if (userAnswers.length === 0) {
+					$(`#${EMPTY_LIST}`).remove();
+				}
+				submitAnswer(ui.item.value);
+				ui.item.value = '';
+				$('#selection').change();
+				setNewEntry();
+			}
+		})
+		.keyup(function (e) {
+			if (e.which === 13) {
+				// referenced https://stackoverflow.com/a/9602462
+				$('.ui-menu-item').hide();
+				$('#pr2__button').trigger('click');
+			}
+		});
+
+	$('#pr2__button').click(() => {
+		if ($('#pr2__capital').hasClass('ui-autocomplete')) {
+			$('#pr2__capital').blur();
+			$('#pr2__capital').autocomplete('close');
+			$('#pr2__capital').autocomplete('disable');
+			$('#pr2__capital').autocomplete('enable');
+		}
 		if ($('#pr2__capital').val() !== '') {
 			submitAnswer($('#pr2__capital').val());
 			$('#selection').change();
 			setNewEntry();
 		}
 	});
-	$(document).keydown(function (event) {
+	$(document).keydown(event => {
 		if (event.which === 13) {
 			$('#pr2__button').trigger('click');
 		}
