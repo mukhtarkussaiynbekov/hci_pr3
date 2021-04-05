@@ -6,7 +6,7 @@ const CORRECT = 'correct';
 const WRONG = 'wrong';
 const EMPTY_LIST = 'emptyList';
 
-$(document).ready(function () {
+$(document).ready(() => {
 	var country_capital_pairs = pairs;
 	var capitals = [];
 	country_capital_pairs.forEach(pair => capitals.push(pair.capital));
@@ -56,6 +56,7 @@ $(document).ready(function () {
 
 	const clearTable = () => {
 		userAnswers.forEach((entry, idx) => {
+			// referenced https://www.w3schools.com/jquery/jquery_dom_remove.asp
 			$(`#${idx}`).remove();
 		});
 	};
@@ -100,6 +101,8 @@ $(document).ready(function () {
 		removeButton.className = 'removeButton';
 		removeButton.setAttribute('type', 'button');
 		removeButton.innerHTML = 'Remove';
+
+		// referenced https://www.codegrepper.com/code-examples/javascript/javascript+create+button+onclick
 		removeButton.onclick = () => {
 			clearTable();
 			// referenced https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/splice
@@ -174,10 +177,10 @@ $(document).ready(function () {
 				setNewEntry();
 			}
 		})
-		.keyup(function (e) {
+		.keyup(e => {
 			if (e.which === 13) {
 				// referenced https://stackoverflow.com/a/9602462
-				$('.ui-menu-item').hide();
+				$('.ui-menu').hide();
 				$('#pr2__button').trigger('click');
 			}
 		});
