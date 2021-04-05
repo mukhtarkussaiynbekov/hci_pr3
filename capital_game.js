@@ -1,49 +1,20 @@
 // This allows the Javascript code inside this block to only run when the page
 // has finished loading in the browser.
 
+const ALL = 'all';
+const CORRECT = 'correct';
+const WRONG = 'wrong';
+const EMPTY_LIST = 'emptyList';
+
 $(document).ready(function () {
 	var country_capital_pairs = pairs;
 	var capitals = [];
 	country_capital_pairs.forEach(pair => capitals.push(pair.capital));
-
-	// referenced https://www.tutorialrepublic.com/faq/how-to-get-the-value-of-selected-option-in-a-select-box-using-jquery.php#:~:text=Answer%3A%20Use%20the%20jQuery%20%3Aselected,select%20box%20or%20dropdown%20list.
-	$('#selection').change(() => {
-		var selectedOption = $('#selection').children('option:selected').val();
-		console.log(selectedOption);
-	});
-
-	$('#pr2__capital').autocomplete({
-		source: capitals,
-		minLength: 2,
-		select: (event, ui) => {
-			if (userAnswers.length === 0) {
-				$('#emptyList').remove();
-			}
-			submitAnswer(ui.item.value);
-			ui.item.value = '';
-			setNewEntry();
-		}
-	});
-	// .keyup(function (e) {
-	// 	if (e.which === 13) {
-	// 		// referenced https://stackoverflow.com/a/49816411
-	// 		if ($('#pr2__capital').hasClass('ui-autocomplete'))
-	// 			$('#pr2__capital').autocomplete('close');
-	// 		$('#pr2__button').trigger('click');
-	// 	}
-	// });
-
-	$.widget('custom.autocomplete', {
-		_resizeMenu: function () {
-			this.menu.element.outerHeight(250);
-		}
-	});
-
 	var userAnswers = [];
 
-	const emptyList = () => {
+	const displayEmptyList = () => {
 		var emptyArrayRow = document.createElement('tr');
-		emptyArrayRow.id = 'emptyList';
+		emptyArrayRow.id = EMPTY_LIST;
 		emptyArrayRow.className = 'row';
 		var emptyCell = document.createElement('td');
 		emptyCell.setAttribute('colspan', '3');
@@ -53,41 +24,19 @@ $(document).ready(function () {
 		emptyArrayRow.appendChild(emptyCell);
 		$('.table-body').append(emptyArrayRow);
 	};
+	displayEmptyList();
 
-	const getCorrectCapital = country => {
-		for (var pair of country_capital_pairs) {
-			if (pair.country === country) {
-				return pair.capital;
-			}
-		}
-	};
-
-	const formattedString = string => {
-		// referenced following links:
-		// https://www.benchresources.net/remove-leading-and-trailing-whitespace-from-javascript-string/
-		// https://stackoverflow.com/a/1026087
-		var trimmedString = string.trim();
-		return trimmedString.toLowerCase();
-	};
-
-	const submitAnswer = inputCapital => {
-		var country = $('#pr2__country').text();
-		var correctCapital = getCorrectCapital(country);
-		console.log(correctCapital);
-		var formattedInputCapital = formattedString(inputCapital);
-		console.log(inputCapital);
-		var isCorrect = formattedInputCapital === correctCapital.toLowerCase();
-
-		userAnswers.push({
-			country,
-			capital: correctCapital,
-			input: inputCapital,
-			isCorrect
-		});
-
+	const displayAnswer = (
+		id,
+		country,
+		isCorrect,
+		correctCapital,
+		inputCapital
+	) => {
 		// row create
 		var newRow = document.createElement('tr');
-		newRow.className = `row ${isCorrect ? 'correct' : 'wrong'}`;
+		newRow.id = id;
+		newRow.className = `row ${isCorrect ? CORRECT : WRONG}`;
 
 		// country cell with its text
 		var countryCell = document.createElement('td');
@@ -121,7 +70,99 @@ $(document).ready(function () {
 		$('.table-body').append(newRow);
 	};
 
-	emptyList();
+	const clearTable = () => {
+		userAnswers.forEach((entry, idx) => {
+			$(`#${idx}`).remove();
+		});
+	};
+
+	// referenced https://www.tutorialrepublic.com/faq/how-to-get-the-value-of-selected-option-in-a-select-box-using-jquery.php#:~:text=Answer%3A%20Use%20the%20jQuery%20%3Aselected,select%20box%20or%20dropdown%20list.
+	$('#selection').change(() => {
+		var selectedOption = $('#selection').children('option:selected').val();
+		clearTable();
+		var isEmpty = true;
+		userAnswers.forEach(({ country, capital, input, isCorrect }, idx) => {
+			if (
+				selectedOption === ALL ||
+				(selectedOption === CORRECT && isCorrect) ||
+				(selectedOption === WRONG && !isCorrect)
+			) {
+				isEmpty = false;
+				displayAnswer(idx, country, isCorrect, capital, input);
+			}
+		});
+		// referenced https://mkyong.com/jquery/how-to-check-if-an-element-is-exists-in-jquery/#:~:text=In%20jQuery%2C%20you%20can%20use,number%20of%20the%20matched%20elements.&text=To%20check%20if%20an%20element%20which,id%20of%20%E2%80%9Cdiv1%E2%80%9D%20exists.
+		while ($(`#${EMPTY_LIST}`).length !== 0) {
+			$(`#${EMPTY_LIST}`).remove();
+		}
+		if (isEmpty) {
+			displayEmptyList();
+		}
+	});
+
+	$('#pr2__capital').autocomplete({
+		source: capitals,
+		minLength: 2,
+		select: (event, ui) => {
+			if (userAnswers.length === 0) {
+				$(`#${EMPTY_LIST}`).remove();
+			}
+			submitAnswer(ui.item.value);
+			ui.item.value = '';
+			setNewEntry();
+		}
+	});
+	// .keyup(function (e) {
+	// 	if (e.which === 13) {
+	// 		// referenced https://stackoverflow.com/a/49816411
+	// 		if ($('#pr2__capital').hasClass('ui-autocomplete'))
+	// 			$('#pr2__capital').autocomplete('close');
+	// 		$('#pr2__button').trigger('click');
+	// 	}
+	// });
+
+	$.widget('custom.autocomplete', {
+		_resizeMenu: function () {
+			this.menu.element.outerHeight(250);
+		}
+	});
+
+	const getCorrectCapital = country => {
+		for (var pair of country_capital_pairs) {
+			if (pair.country === country) {
+				return pair.capital;
+			}
+		}
+	};
+
+	const formattedString = string => {
+		// referenced following links:
+		// https://www.benchresources.net/remove-leading-and-trailing-whitespace-from-javascript-string/
+		// https://stackoverflow.com/a/1026087
+		var trimmedString = string.trim();
+		return trimmedString.toLowerCase();
+	};
+
+	const submitAnswer = inputCapital => {
+		var country = $('#pr2__country').text();
+		var correctCapital = getCorrectCapital(country);
+		var formattedInputCapital = formattedString(inputCapital);
+		var isCorrect = formattedInputCapital === correctCapital.toLowerCase();
+
+		// save entry
+		userAnswers.push({
+			country,
+			capital: correctCapital,
+			input: inputCapital,
+			isCorrect
+		});
+
+		var selectedOption = $('#selection').children('option:selected').val();
+		if (selectedOption === WRONG && isCorrect) {
+			// referenced https://stackoverflow.com/a/12797914
+			$('#selection').val(ALL).change();
+		}
+	};
 
 	const getRandomPair = () => {
 		const random = Math.floor(Math.random() * country_capital_pairs.length);
@@ -135,10 +176,8 @@ $(document).ready(function () {
 	setNewEntry();
 	$('#pr2__button').click(function () {
 		if ($('#pr2__capital').val() !== '') {
-			if (userAnswers.length === 0) {
-				$('#emptyList').remove();
-			}
 			submitAnswer($('#pr2__capital').val());
+			$('#selection').change();
 			setNewEntry();
 		}
 	});
@@ -147,8 +186,4 @@ $(document).ready(function () {
 			$('#pr2__button').trigger('click');
 		}
 	});
-	// var row = document.createElement('tr');
-	// row.className = 'row';
-	// var question = document.createElement('td');
-	// question.className = 'cell';
 });
