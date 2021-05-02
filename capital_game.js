@@ -157,7 +157,10 @@ $(document).ready(() => {
 		});
 
 		var selectedOption = $('#selection').children('option:selected').val();
-		if (selectedOption === WRONG && isCorrect) {
+		if (
+			(selectedOption === WRONG && isCorrect) ||
+			(selectedOption === CORRECT && !isCorrect)
+		) {
 			// referenced https://stackoverflow.com/a/12797914
 			$('#selection').val(ALL).change();
 		}
@@ -165,7 +168,15 @@ $(document).ready(() => {
 
 	$('#pr2__capital')
 		.autocomplete({
-			source: capitals,
+			source: (request, response) => {
+				response(
+					$.map(capitals, value => {
+						var capital = formattedString(value);
+						var input = formattedString(request.term);
+						return capital.startsWith(input) ? value : null;
+					})
+				);
+			},
 			minLength: 2,
 			select: (event, ui) => {
 				if (userAnswers.length === 0) {
