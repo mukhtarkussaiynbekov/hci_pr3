@@ -7,7 +7,36 @@ const WRONG = 'wrong';
 const EMPTY_LIST = 'emptyList';
 
 $(document).ready(() => {
-	var country_capital_pairs = pairs;
+	// referenced https://stackoverflow.com/a/7431565
+	$.ajax({
+		type: 'GET',
+		url:
+			'https://cs374.s3.ap-northeast-2.amazonaws.com/country_capital_geo.csv',
+		dataType: 'text',
+		success: data => runWeb(data)
+	});
+});
+
+const fetchData = data => {
+	var lines = data.split(/\r\n|\n/);
+	pairs = [];
+	coordinates = [];
+
+	for (var i = 1; i < lines.length - 1; i++) {
+		// first line is header and last line is empty string
+		// referenced https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
+		let country, capital, lng, lat;
+		[country, capital, lng, lat] = lines[i].split(',');
+		pairs.push({ country, capital });
+		coordinates.push({ country, coordinates: [lng, lat] });
+	}
+
+	return { pairs, coordinates };
+};
+
+const runWeb = data => {
+	const window = fetchData(data);
+	var country_capital_pairs = window.pairs;
 	var capitals = [];
 	country_capital_pairs.forEach(pair => capitals.push(pair.capital));
 	var userAnswers = [];
@@ -214,4 +243,4 @@ $(document).ready(() => {
 			$('#pr2__button').trigger('click');
 		}
 	});
-});
+};
