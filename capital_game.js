@@ -5,6 +5,10 @@ const CORRECT = 'correct';
 const WRONG = 'wrong';
 const EMPTY_LIST = 'emptyList';
 
+var capitals = [];
+var userAnswers = [];
+const dbRef = database.ref();
+
 $(document).ready(() => {
 	// referenced https://stackoverflow.com/a/7431565
 	$.ajax({
@@ -36,58 +40,7 @@ const fetchData = data => {
 const runWeb = data => {
 	const window = fetchData(data);
 	var country_capital_pairs = window.pairs;
-	var capitals = [];
 	country_capital_pairs.forEach(pair => capitals.push(pair.capital));
-	var userAnswers = [];
-
-	const displayEmptyList = () => {
-		var emptyArrayRow = document.createElement('tr');
-		emptyArrayRow.id = EMPTY_LIST;
-		emptyArrayRow.className = 'row';
-		var emptyCell = document.createElement('td');
-		emptyCell.setAttribute('colspan', '3');
-		var emptyText = document.createTextNode('The list is empty');
-		emptyCell.appendChild(emptyText);
-		emptyCell.setAttribute('style', 'text-align: center;');
-		emptyArrayRow.appendChild(emptyCell);
-		$('.table-body').append(emptyArrayRow);
-	};
-	displayEmptyList();
-
-	const getCorrectCapital = country => {
-		for (var pair of country_capital_pairs) {
-			if (pair.country === country) {
-				return pair.capital;
-			}
-		}
-	};
-
-	const formattedString = string => {
-		// referenced following links:
-		// https://www.benchresources.net/remove-leading-and-trailing-whitespace-from-javascript-string/
-		// https://stackoverflow.com/a/1026087
-		var trimmedString = string.trim();
-		return trimmedString.toLowerCase();
-	};
-
-	const getRandomPair = () => {
-		const random = Math.floor(Math.random() * country_capital_pairs.length);
-		return country_capital_pairs[random];
-	};
-	const setNewEntry = () => {
-		var pair = getRandomPair();
-		$('#pr2__country').text(pair.country);
-		$('#pr2__capital').val('').focus();
-	};
-
-	setNewEntry();
-
-	const clearTable = () => {
-		userAnswers.forEach((entry, idx) => {
-			// referenced https://www.w3schools.com/jquery/jquery_dom_remove.asp
-			$(`#${idx}`).remove();
-		});
-	};
 
 	const displayAnswer = (
 		id,
@@ -140,10 +93,16 @@ const runWeb = data => {
 		$('.table-body').append(newRow);
 	};
 
-	// referenced https://www.tutorialrepublic.com/faq/how-to-get-the-value-of-selected-option-in-a-select-box-using-jquery.php#:~:text=Answer%3A%20Use%20the%20jQuery%20%3Aselected,select%20box%20or%20dropdown%20list.
-	$('#selection').change(() => {
-		var selectedOption = $('#selection').children('option:selected').val();
+	const clearTable = () => {
+		userAnswers.forEach((entry, idx) => {
+			// referenced https://www.w3schools.com/jquery/jquery_dom_remove.asp
+			$(`#${idx}`).remove();
+		});
+	};
+
+	const refreshTable = () => {
 		clearTable();
+		var selectedOption = $('#selection').children('option:selected').val();
 		var isEmpty = true;
 		userAnswers.forEach(({ country, capital, input, isCorrect }, idx) => {
 			if (
@@ -162,6 +121,72 @@ const runWeb = data => {
 		if (isEmpty) {
 			displayEmptyList();
 		}
+	};
+
+	const readDatabase = () =>
+		dbRef
+			.child('entries')
+			.get()
+			.then(snapshot => {
+				if (snapshot.exists()) {
+					userAnswers = snapshot.val();
+					refreshTable();
+				} else {
+					console.log('No data available');
+				}
+			})
+			.catch(error => {
+				console.error(error);
+			});
+
+	readDatabase();
+
+	const displayEmptyList = () => {
+		var emptyArrayRow = document.createElement('tr');
+		emptyArrayRow.id = EMPTY_LIST;
+		emptyArrayRow.className = 'row';
+		var emptyCell = document.createElement('td');
+		emptyCell.setAttribute('colspan', '3');
+		var emptyText = document.createTextNode('The list is empty');
+		emptyCell.appendChild(emptyText);
+		emptyCell.setAttribute('style', 'text-align: center;');
+		emptyArrayRow.appendChild(emptyCell);
+		$('.table-body').append(emptyArrayRow);
+	};
+
+	refreshTable();
+
+	const getCorrectCapital = country => {
+		for (var pair of country_capital_pairs) {
+			if (pair.country === country) {
+				return pair.capital;
+			}
+		}
+	};
+
+	const formattedString = string => {
+		// referenced following links:
+		// https://www.benchresources.net/remove-leading-and-trailing-whitespace-from-javascript-string/
+		// https://stackoverflow.com/a/1026087
+		var trimmedString = string.trim();
+		return trimmedString.toLowerCase();
+	};
+
+	const getRandomPair = () => {
+		const random = Math.floor(Math.random() * country_capital_pairs.length);
+		return country_capital_pairs[random];
+	};
+	const setNewEntry = () => {
+		var pair = getRandomPair();
+		$('#pr2__country').text(pair.country);
+		$('#pr2__capital').val('').focus();
+	};
+
+	setNewEntry();
+
+	// referenced https://www.tutorialrepublic.com/faq/how-to-get-the-value-of-selected-option-in-a-select-box-using-jquery.php#:~:text=Answer%3A%20Use%20the%20jQuery%20%3Aselected,select%20box%20or%20dropdown%20list.
+	$('#selection').change(() => {
+		refreshTable();
 	});
 
 	const submitAnswer = inputCapital => {
@@ -186,6 +211,8 @@ const runWeb = data => {
 			// referenced https://stackoverflow.com/a/12797914
 			$('#selection').val(ALL).change();
 		}
+
+		dbRef.child('entries').set(userAnswers);
 	};
 
 	$('#pr2__capital')
