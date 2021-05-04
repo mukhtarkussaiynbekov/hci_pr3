@@ -42,6 +42,56 @@ const runWeb = data => {
 	var country_capital_pairs = window.pairs;
 	country_capital_pairs.forEach(pair => capitals.push(pair.capital));
 
+	const readDatabase = () => {
+		dbRef
+			.child('filter')
+			.get()
+			.then(snapshot => {
+				if (snapshot.exists()) {
+					var filterOption = snapshot.val();
+					$('#selection').val(filterOption).change();
+				} else {
+					console.log('No data available');
+				}
+			})
+			.catch(error => {
+				console.error(error);
+			});
+
+		dbRef
+			.child('entries')
+			.get()
+			.then(snapshot => {
+				if (snapshot.exists()) {
+					userAnswers = snapshot.val();
+					refreshTable();
+				} else {
+					console.log('No data available');
+				}
+			})
+			.catch(error => {
+				console.error(error);
+			});
+	};
+
+	const writeEntries = () => {
+		dbRef.child('entries').set(userAnswers);
+	};
+
+	const writeFilter = () => {
+		var selectedOption = $('#selection').children('option:selected').val();
+		dbRef.child('filter').set(selectedOption);
+	};
+
+	readDatabase();
+
+	const clearTable = () => {
+		userAnswers.forEach((entry, idx) => {
+			// referenced https://www.w3schools.com/jquery/jquery_dom_remove.asp
+			$(`#${idx}`).remove();
+		});
+	};
+
 	const displayAnswer = (
 		id,
 		country,
@@ -82,6 +132,7 @@ const runWeb = data => {
 			clearTable();
 			// referenced https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/splice
 			userAnswers.splice(id, 1);
+			writeEntries();
 			$('#selection').change();
 		};
 		answerCell.appendChild(removeButton);
@@ -91,13 +142,6 @@ const runWeb = data => {
 		newRow.appendChild(capitalCell);
 		newRow.appendChild(answerCell);
 		$('.table-body').append(newRow);
-	};
-
-	const clearTable = () => {
-		userAnswers.forEach((entry, idx) => {
-			// referenced https://www.w3schools.com/jquery/jquery_dom_remove.asp
-			$(`#${idx}`).remove();
-		});
 	};
 
 	const refreshTable = () => {
@@ -122,24 +166,6 @@ const runWeb = data => {
 			displayEmptyList();
 		}
 	};
-
-	const readDatabase = () =>
-		dbRef
-			.child('entries')
-			.get()
-			.then(snapshot => {
-				if (snapshot.exists()) {
-					userAnswers = snapshot.val();
-					refreshTable();
-				} else {
-					console.log('No data available');
-				}
-			})
-			.catch(error => {
-				console.error(error);
-			});
-
-	readDatabase();
 
 	const displayEmptyList = () => {
 		var emptyArrayRow = document.createElement('tr');
@@ -186,6 +212,7 @@ const runWeb = data => {
 
 	// referenced https://www.tutorialrepublic.com/faq/how-to-get-the-value-of-selected-option-in-a-select-box-using-jquery.php#:~:text=Answer%3A%20Use%20the%20jQuery%20%3Aselected,select%20box%20or%20dropdown%20list.
 	$('#selection').change(() => {
+		writeFilter();
 		refreshTable();
 	});
 
@@ -212,7 +239,7 @@ const runWeb = data => {
 			$('#selection').val(ALL).change();
 		}
 
-		dbRef.child('entries').set(userAnswers);
+		writeEntries();
 	};
 
 	$('#pr2__capital')
@@ -262,5 +289,12 @@ const runWeb = data => {
 		if (event.which === 13) {
 			$('#pr2__button').trigger('click');
 		}
+	});
+
+	$('#pr3__clear').click(() => {
+		clearTable();
+		displayEmptyList();
+		userAnswers = [];
+		writeEntries();
 	});
 };
