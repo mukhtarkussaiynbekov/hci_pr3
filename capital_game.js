@@ -1,6 +1,5 @@
 // This allows the Javascript code inside this block to only run when the page
 // has finished loading in the browser.
-
 const ALL = 'all';
 const CORRECT = 'correct';
 const WRONG = 'wrong';
@@ -118,14 +117,8 @@ const runWeb = data => {
 
 		// answer cell with its text or icon
 		var answerCell = document.createElement('td');
-		if (isCorrect) {
-			var icon = document.createElement('i');
-			icon.className = 'fas fa-circle';
-			answerCell.appendChild(icon);
-		} else {
-			var correctAnswerText = document.createTextNode(correctCapital);
-			answerCell.appendChild(correctAnswerText);
-		}
+		var correctAnswerText = document.createTextNode(correctCapital);
+		answerCell.appendChild(correctAnswerText);
 		var removeButton = document.createElement('button');
 		removeButton.className = 'removeButton';
 		removeButton.setAttribute('type', 'button');
