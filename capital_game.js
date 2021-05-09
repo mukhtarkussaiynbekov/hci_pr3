@@ -107,9 +107,35 @@ const runWeb = data => {
 
 		// country cell with its text
 		var countryCell = document.createElement('td');
-		countryCell.className = 'cell';
+		countryCell.className = 'cell country';
 		var countryText = document.createTextNode(country);
-		countryCell.appendChild(countryText);
+		var countryTextElement = document.createElement('span');
+		countryTextElement.appendChild(countryText);
+		countryCell.appendChild(countryTextElement);
+
+		countryTextElement.onmouseover = () => {
+			$(`#${id}`).addClass('light-gray');
+			window.mytimeout = setTimeout(() => {
+				mapLocateCountry(country);
+				$('#map').addClass('country-selected');
+			}, 500);
+		};
+
+		countryTextElement.onmouseleave = () => {
+			$(`#${id}`).removeClass('light-gray');
+			clearTimeout(window.mytimeout);
+			$('#map').removeClass('country-selected');
+		};
+
+		countryCell.onmouseover = () => {
+			window.mytimeout = setTimeout(() => {
+				map.setZoom(4);
+			}, 500);
+		};
+
+		countryCell.onmouseleave = () => {
+			clearTimeout(window.mytimeout);
+		};
 
 		// capital cell with its text
 		var capitalCell = document.createElement('td');
@@ -122,7 +148,27 @@ const runWeb = data => {
 		// answer cell with its text or icon
 		var answerCell = document.createElement('td');
 		var correctAnswerText = document.createTextNode(correctCapital);
-		answerCell.appendChild(correctAnswerText);
+		var answerTextElement = document.createElement('span');
+		answerTextElement.appendChild(correctAnswerText);
+		answerCell.appendChild(answerTextElement);
+
+		answerTextElement.onmouseover = () => {
+			$(`#${id}`).addClass('light-gray');
+			window.mytimeout = setTimeout(() => {
+				mapLocateCountry(country);
+				$('#map').addClass('capital-selected');
+				map.setStyle('mapbox://styles/mapbox/dark-v10');
+				map.setZoom(6);
+			}, 500);
+		};
+
+		answerTextElement.onmouseleave = () => {
+			$(`#${id}`).removeClass('light-gray');
+			clearTimeout(window.mytimeout);
+			$('#map').removeClass('capital-selected');
+			map.setStyle('mapbox://styles/mapbox/satellite-streets-v11');
+		};
+
 		var removeButton = document.createElement('button');
 		removeButton.className = 'removeButton';
 		removeButton.setAttribute('type', 'button');
@@ -203,15 +249,18 @@ const runWeb = data => {
 		const random = Math.floor(Math.random() * country_capital_pairs.length);
 		return country_capital_pairs[random];
 	};
+	const mapLocateCountry = country => {
+		for (var countryCoordinates of window.coordinates) {
+			if (countryCoordinates.country === country) {
+				map.setCenter(countryCoordinates.coordinates);
+			}
+		}
+	};
 	const setNewEntry = () => {
 		var pair = getRandomPair();
 		$('#pr2__country').text(pair.country);
 		$('#pr2__capital').val('').focus();
-		for (var countryCoordinates of window.coordinates) {
-			if (countryCoordinates.country === pair.country) {
-				map.setCenter(countryCoordinates.coordinates);
-			}
-		}
+		mapLocateCountry(pair.country);
 	};
 
 	setNewEntry();
@@ -303,4 +352,20 @@ const runWeb = data => {
 		userAnswers = [];
 		writeEntries();
 	});
+
+	$('#pr2__country').hover(
+		event => {
+			$('#question_row').addClass('light-gray');
+			window.mytimeout = setTimeout(function () {
+				let country = $(event.target).text();
+				mapLocateCountry(country);
+				$('#map').addClass('country-selected');
+			}, 500);
+		},
+		() => {
+			$('#question_row').removeClass('light-gray');
+			clearTimeout(window.mytimeout);
+			$('#map').removeClass('country-selected');
+		}
+	);
 };

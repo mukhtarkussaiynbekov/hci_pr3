@@ -48,3 +48,19 @@ body {
 	max-height: 250px;
 	overflow-x: hidden; /* add padding to account for vertical scrollbar */
 }
+
+.country-selected {
+	border-style: solid;
+	border-color: orange;
+	border-width: 3px;
+}
+
+.capital-selected {
+	border-style: solid;
+	border-color: black;
+	border-width: 3px;
+}
+
+.light-gray {
+	background-color: #d3d3d3;
+}
