@@ -34,11 +34,12 @@ const fetchData = data => {
 		coordinates.push({ country, coordinates: [lng, lat] });
 	}
 
-	return { pairs, coordinates };
+	window.pairs = pairs;
+	window.coordinates = coordinates;
 };
 
 const runWeb = data => {
-	const window = fetchData(data);
+	fetchData(data);
 	var country_capital_pairs = window.pairs;
 	country_capital_pairs.forEach(pair => capitals.push(pair.capital));
 
@@ -206,6 +207,11 @@ const runWeb = data => {
 		var pair = getRandomPair();
 		$('#pr2__country').text(pair.country);
 		$('#pr2__capital').val('').focus();
+		for (var countryCoordinates of window.coordinates) {
+			if (countryCoordinates.country === pair.country) {
+				map.setCenter(countryCoordinates.coordinates);
+			}
+		}
 	};
 
 	setNewEntry();

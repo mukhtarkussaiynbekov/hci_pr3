@@ -21,11 +21,29 @@
 			href="jquery/css/ui-lightness/jquery-ui-1.10.0.custom.css"
 			rel="stylesheet"
 		/>
+
+		<script src="https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.js"></script>
+		<link
+			href="https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.css"
+			rel="stylesheet"
+		/>
 	</head>
 	<body>
 		<div class="container">
 			<h1>World Capital Quiz Game</h1>
 			<h3>Do you know the capital of this country?</h3>
+
+			<div id="map" style="width: 600px; height: 450px"></div>
+			<script>
+				mapboxgl.accessToken =
+					'pk.eyJ1IjoibXVraHRhcmswMSIsImEiOiJja29ndW82bXgwaXgxMm9wbm4yNzY3YWV0In0.AgxvO4SYZG13wZAFPANVEw';
+				var map = new mapboxgl.Map({
+					container: 'map', // container ID
+					style: 'mapbox://styles/mapbox/satellite-streets-v11', // style URL
+					center: [-74.5, 40], // starting position [lng, lat]
+					zoom: 4 // starting zoom
+				});
+			</script>
 
 			<!-- referenced https://www.w3schools.com/tags/tag_select.asp -->
 			<select name="selection" id="selection">
