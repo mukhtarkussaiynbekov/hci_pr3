@@ -42,6 +42,7 @@ const runWeb = data => {
 	fetchData(data);
 	var country_capital_pairs = window.pairs;
 	country_capital_pairs.forEach(pair => capitals.push(pair.capital));
+	var historySize = 0;
 
 	const readDatabase = () => {
 		dbRef
@@ -51,12 +52,7 @@ const runWeb = data => {
 				if (snapshot.exists()) {
 					var filterOption = snapshot.val();
 					$('#selection').val(filterOption).change();
-				} else {
-					console.log('No data available');
 				}
-			})
-			.catch(error => {
-				console.error(error);
 			});
 
 		dbRef
@@ -66,18 +62,46 @@ const runWeb = data => {
 				if (snapshot.exists()) {
 					userAnswers = snapshot.val();
 					refreshTable();
-				} else {
-					console.log('No data available');
 				}
-			})
-			.catch(error => {
-				console.error(error);
 			});
 	};
 
-	const writeEntries = () => {
-		dbRef.child('entries').set(userAnswers);
-	};
+	async function writeEntries() {
+		await dbRef.child('entries').set(userAnswers);
+	}
+
+	function getHistorySize() {
+		dbRef
+			.child('history')
+			.once('value')
+			.then(snapshot => {
+				let history = snapshot.val();
+				historySize = history ? Object.keys(history).length : 0;
+			});
+	}
+
+	getHistorySize();
+
+	function undoHistory() {
+		if (historySize === 0) {
+			alert('Nothing to undo');
+		} else {
+			let historyElement = dbRef.child('history').child(`${historySize}`);
+			historySize--;
+			historyElement.once('value').then(snapshot => {
+				clearTable();
+				userAnswers = snapshot.val() ? snapshot.val() : [];
+				writeEntries();
+				historyElement.remove();
+				refreshTable();
+			});
+		}
+	}
+
+	async function addToHistory() {
+		historySize++;
+		await dbRef.child('history').child(`${historySize}`).set(userAnswers);
+	}
 
 	const writeFilter = () => {
 		var selectedOption = $('#selection').children('option:selected').val();
@@ -87,7 +111,11 @@ const runWeb = data => {
 	readDatabase();
 
 	const clearTable = () => {
-		userAnswers.forEach((entry, idx) => {
+		// referenced https://mkyong.com/jquery/how-to-check-if-an-element-is-exists-in-jquery/#:~:text=In%20jQuery%2C%20you%20can%20use,number%20of%20the%20matched%20elements.&text=To%20check%20if%20an%20element%20which,id%20of%20%E2%80%9Cdiv1%E2%80%9D%20exists.
+		while ($(`#${EMPTY_LIST}`).length !== 0) {
+			$(`#${EMPTY_LIST}`).remove();
+		}
+		userAnswers.forEach((_, idx) => {
 			// referenced https://www.w3schools.com/jquery/jquery_dom_remove.asp
 			$(`#${idx}`).remove();
 		});
@@ -176,6 +204,7 @@ const runWeb = data => {
 
 		// referenced https://www.codegrepper.com/code-examples/javascript/javascript+create+button+onclick
 		removeButton.onclick = () => {
+			addToHistory();
 			clearTable();
 			// referenced https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/splice
 			userAnswers.splice(id, 1);
@@ -205,10 +234,6 @@ const runWeb = data => {
 				displayAnswer(idx, country, isCorrect, capital, input);
 			}
 		});
-		// referenced https://mkyong.com/jquery/how-to-check-if-an-element-is-exists-in-jquery/#:~:text=In%20jQuery%2C%20you%20can%20use,number%20of%20the%20matched%20elements.&text=To%20check%20if%20an%20element%20which,id%20of%20%E2%80%9Cdiv1%E2%80%9D%20exists.
-		while ($(`#${EMPTY_LIST}`).length !== 0) {
-			$(`#${EMPTY_LIST}`).remove();
-		}
 		if (isEmpty) {
 			displayEmptyList();
 		}
@@ -335,6 +360,7 @@ const runWeb = data => {
 			$('#pr2__capital').autocomplete('enable');
 		}
 		if ($('#pr2__capital').val() !== '') {
+			addToHistory();
 			submitAnswer($('#pr2__capital').val());
 			$('#selection').change();
 			setNewEntry();
@@ -346,14 +372,20 @@ const runWeb = data => {
 		}
 	});
 
-	$('#pr3__clear').click(() => {
+	const clearDatabase = () => {
 		clearTable();
 		displayEmptyList();
 		userAnswers = [];
 		writeEntries();
+	};
+
+	$('#pr3__clear').click(() => {
+		addToHistory();
+		clearDatabase();
 	});
 
 	$('#pr2__country').hover(
+		// referenced https://stackoverflow.com/a/14818451
 		event => {
 			$('#question_row').addClass('light-gray');
 			window.mytimeout = setTimeout(function () {
@@ -368,4 +400,15 @@ const runWeb = data => {
 			$('#map').removeClass('country-selected');
 		}
 	);
+
+	$('#pr3__undo').click(() => undoHistory());
+
+	async function reset() {
+		historySize = 0;
+		await dbRef.child('history').set(null);
+		setNewEntry();
+		clearDatabase();
+	}
+
+	$('#pr3__reset').click(() => reset());
 };
