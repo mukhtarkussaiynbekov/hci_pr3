@@ -44,8 +44,8 @@ const runWeb = data => {
 	country_capital_pairs.forEach(pair => capitals.push(pair.capital));
 	var historySize = 0;
 
-	const readDatabase = () => {
-		dbRef
+	async function readDatabase() {
+		await dbRef
 			.child('filter')
 			.get()
 			.then(snapshot => {
@@ -55,7 +55,7 @@ const runWeb = data => {
 				}
 			});
 
-		dbRef
+		await dbRef
 			.child('entries')
 			.get()
 			.then(snapshot => {
@@ -64,14 +64,14 @@ const runWeb = data => {
 					refreshTable();
 				}
 			});
-	};
+	}
 
 	async function writeEntries() {
 		await dbRef.child('entries').set(userAnswers);
 	}
 
-	function getHistorySize() {
-		dbRef
+	async function getHistorySize() {
+		await dbRef
 			.child('history')
 			.once('value')
 			.then(snapshot => {
@@ -79,8 +79,6 @@ const runWeb = data => {
 				historySize = history ? Object.keys(history).length : 0;
 			});
 	}
-
-	getHistorySize();
 
 	function undoHistory() {
 		if (historySize === 0) {
@@ -90,7 +88,8 @@ const runWeb = data => {
 			historySize--;
 			historyElement.once('value').then(snapshot => {
 				clearTable();
-				userAnswers = snapshot.val() ? snapshot.val() : [];
+				let object = snapshot.val();
+				userAnswers = object.length === 0 ? [] : object.userAnswers;
 				writeEntries();
 				historyElement.remove();
 				refreshTable();
@@ -100,15 +99,19 @@ const runWeb = data => {
 
 	async function addToHistory() {
 		historySize++;
-		await dbRef.child('history').child(`${historySize}`).set(userAnswers);
+		await dbRef
+			.child('history')
+			.child(`${historySize}`)
+			.set({
+				length: userAnswers.length === 0 ? 0 : userAnswers.length,
+				userAnswers
+			});
 	}
 
 	const writeFilter = () => {
 		var selectedOption = $('#selection').children('option:selected').val();
 		dbRef.child('filter').set(selectedOption);
 	};
-
-	readDatabase();
 
 	const clearTable = () => {
 		// referenced https://mkyong.com/jquery/how-to-check-if-an-element-is-exists-in-jquery/#:~:text=In%20jQuery%2C%20you%20can%20use,number%20of%20the%20matched%20elements.&text=To%20check%20if%20an%20element%20which,id%20of%20%E2%80%9Cdiv1%E2%80%9D%20exists.
@@ -135,13 +138,17 @@ const runWeb = data => {
 
 		// country cell with its text
 		var countryCell = document.createElement('td');
-		countryCell.className = 'cell country';
+		countryCell.className = 'cell';
 		var countryText = document.createTextNode(country);
 		var countryTextElement = document.createElement('span');
+		countryTextElement.className = 'country';
 		countryTextElement.appendChild(countryText);
 		countryCell.appendChild(countryTextElement);
 
 		countryTextElement.onmouseover = () => {
+			while ($('#map').hasClass('country-selected')) {
+				$('#map').removeClass('country-selected');
+			}
 			$(`#${id}`).addClass('light-gray');
 			window.mytimeout = setTimeout(() => {
 				mapLocateCountry(country);
@@ -152,7 +159,9 @@ const runWeb = data => {
 		countryTextElement.onmouseleave = () => {
 			$(`#${id}`).removeClass('light-gray');
 			clearTimeout(window.mytimeout);
-			$('#map').removeClass('country-selected');
+			while ($('#map').hasClass('country-selected')) {
+				$('#map').removeClass('country-selected');
+			}
 		};
 
 		countryCell.onmouseover = () => {
@@ -177,10 +186,14 @@ const runWeb = data => {
 		var answerCell = document.createElement('td');
 		var correctAnswerText = document.createTextNode(correctCapital);
 		var answerTextElement = document.createElement('span');
+		answerTextElement.className = 'answer';
 		answerTextElement.appendChild(correctAnswerText);
 		answerCell.appendChild(answerTextElement);
 
 		answerTextElement.onmouseover = () => {
+			while ($('#map').hasClass('capital-selected')) {
+				$('#map').removeClass('capital-selected');
+			}
 			$(`#${id}`).addClass('light-gray');
 			window.mytimeout = setTimeout(() => {
 				mapLocateCountry(country);
@@ -193,7 +206,9 @@ const runWeb = data => {
 		answerTextElement.onmouseleave = () => {
 			$(`#${id}`).removeClass('light-gray');
 			clearTimeout(window.mytimeout);
-			$('#map').removeClass('capital-selected');
+			while ($('#map').hasClass('capital-selected')) {
+				$('#map').removeClass('capital-selected');
+			}
 			map.setStyle('mapbox://styles/mapbox/satellite-streets-v11');
 		};
 
@@ -252,8 +267,6 @@ const runWeb = data => {
 		$('.table-body').append(emptyArrayRow);
 	};
 
-	refreshTable();
-
 	const getCorrectCapital = country => {
 		for (var pair of country_capital_pairs) {
 			if (pair.country === country) {
@@ -287,8 +300,6 @@ const runWeb = data => {
 		$('#pr2__capital').val('').focus();
 		mapLocateCountry(pair.country);
 	};
-
-	setNewEntry();
 
 	// referenced https://www.tutorialrepublic.com/faq/how-to-get-the-value-of-selected-option-in-a-select-box-using-jquery.php#:~:text=Answer%3A%20Use%20the%20jQuery%20%3Aselected,select%20box%20or%20dropdown%20list.
 	$('#selection').change(() => {
@@ -379,14 +390,12 @@ const runWeb = data => {
 		writeEntries();
 	};
 
-	$('#pr3__clear').click(() => {
-		addToHistory();
-		clearDatabase();
-	});
-
 	$('#pr2__country').hover(
 		// referenced https://stackoverflow.com/a/14818451
 		event => {
+			while ($('#map').hasClass('country-selected')) {
+				$('#map').removeClass('country-selected');
+			}
 			$('#question_row').addClass('light-gray');
 			window.mytimeout = setTimeout(function () {
 				let country = $(event.target).text();
@@ -397,11 +406,24 @@ const runWeb = data => {
 		() => {
 			$('#question_row').removeClass('light-gray');
 			clearTimeout(window.mytimeout);
-			$('#map').removeClass('country-selected');
+			while ($('#map').hasClass('country-selected')) {
+				$('#map').removeClass('country-selected');
+			}
 		}
 	);
 
-	$('#pr3__undo').click(() => undoHistory());
+	$('body').hover(event => {
+		if (!$(event.target).hasClass('country')) {
+			while ($('#map').hasClass('country-selected')) {
+				$('#map').removeClass('country-selected');
+			}
+		}
+		if (!$(event.target).hasClass('answer')) {
+			while ($('#map').hasClass('capital-selected')) {
+				$('#map').removeClass('capital-selected');
+			}
+		}
+	});
 
 	async function reset() {
 		historySize = 0;
@@ -411,4 +433,15 @@ const runWeb = data => {
 	}
 
 	$('#pr3__reset').click(() => reset());
+
+	displayEmptyList();
+	setNewEntry();
+	getHistorySize().then(() => {
+		readDatabase();
+		$('#pr3__undo').click(() => undoHistory());
+		$('#pr3__clear').click(() => {
+			addToHistory();
+			clearDatabase();
+		});
+	});
 };
